@@ -25,9 +25,22 @@ describe("app", function() {
 
   });
 
-  describe("Does not set the campaign", function() {
+  describe("With app tags", function() {
 
-    describe("when campaign medium is an ignored value", function() {
+    describe("Sets the campaign", function() {
+
+      it("returns a campaign object", function() {
+        var campaignName = "baz";
+        var campaignMedium = "foo";
+
+        spyOn(app, "getCampaignMedium").and.returnValue(campaignMedium);
+        result = app.track(location + "?app=foo&affil=" + campaignName, referrer);
+        expect(result).toEqual({
+          "campaignName": campaignName,
+          "campaignMedium": campaignMedium,
+          "campaignSource": "bar.com"
+        });
+      });
 
       it("just returns if medium is seo", function() {
         spyOn(app, "getCampaignMedium").and.returnValue("seo");
@@ -43,46 +56,26 @@ describe("app", function() {
 
     });
 
-  });
-
-  describe("Set campaign", function() {
-
-    it("returns a campaign object", function() {
-      var campaignName = "baz";
-      var campaignMedium = "foo";
-
-      spyOn(app, "getCampaignMedium").and.returnValue(campaignMedium);
-      result = app.track(location + "?app=foo&affil=" + campaignName, referrer);
-      expect(result).toEqual({
-        "campaignName": campaignName,
-        "campaignMedium": campaignMedium,
-        "campaignSource": "bar.com"
-      });
-    });
-
-  });
-
-  describe("Set Dimensions", function() {
-
-    describe("With an app tag", function() {
+    describe("Sets dimensions", function() {
 
       beforeEach(function() {
         spyOn(app, "getCampaignMedium").and.returnValue(undefined);
       });
 
-      describe("and an lpaffil querystring parameter", function() {
+      describe("an lpaffil querystring parameter is present", function() {
         it("sets a variable on dimension 10", function() {
           result = app.track(location + "?app=foo&lpaffil=bar", referrer);
           expect(result).toEqual({"dimension10": "bar"});
         });
       });
 
-      describe("and an intaffil querystring parameter", function() {
+      describe("an an intaffil querystring parameter is present", function() {
         it("sets a variable on dimension11", function() {
           result = app.track(location + "?app=foo&intaffil=bar", referrer);
           expect(result).toEqual({"dimension11": "bar"});
         });
       });
+
     });
 
   });
