@@ -1,0 +1,21 @@
+module.exports = {
+  "seo":"seo",
+  "ppc":"sem",
+  "sem":"sem",
+  "soc":"social",
+  "soc_other":"social",
+  "eml":"email",
+  "pns":"partnership",
+  "aff":"affiliate",
+  "qr":"qr-code",
+  "pdf":"pdf-code",
+  "pub":"publishing-code",
+  "cs":"cs-microsite-code",
+  "us":"us-paid-other",
+  "uk":"uk-paid-other",
+  "au":"au-paid-other",
+  "other_ref":"other-referring-domain",
+  "other":"unknown-paid",
+  "dem":"dem",
+  "direct":"direct"
+};

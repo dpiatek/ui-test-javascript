@@ -3,6 +3,7 @@ module.exports = (function() {
   "use strict";
 
   var parseUri = require("./parseUri");
+  var channels = require("./channels");
 
   return {
     getCampaignMedium: getCampaignMedium,
@@ -59,29 +60,6 @@ module.exports = (function() {
   function getCampaignMedium(parsedUrl, campcode, referrerHost) {
 
     /**********Campaign management plugin *********************/
-
-    //setup the different campaign channels available
-    var channels = {
-        "seo":"seo",
-        "ppc":"sem",
-        "sem":"sem",
-        "soc":"social",
-        "soc_other":"social",
-        "eml":"email",
-        "pns":"partnership",
-        "aff":"affiliate",
-        "qr":"qr-code",
-        "pdf":"pdf-code",
-        "pub":"publishing-code",
-        "cs":"cs-microsite-code",
-        "us":"us-paid-other",
-        "uk":"uk-paid-other",
-        "au":"au-paid-other",
-        "other_ref":"other-referring-domain",
-        "other":"unknown-paid",
-        "dem":"dem",
-        "direct":"direct"
-    };
 
     //is there a campaign code?
     if (campcode) {
