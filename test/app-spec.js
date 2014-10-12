@@ -33,15 +33,11 @@ describe("app", function() {
       describe("Sets the campaign", function() {
 
         it("returns a campaign object", function() {
-          var campaignName = "baz";
-          var campaignMedium = "foo";
-
-          spyOn(app, "getCampaignMedium").and.returnValue(campaignMedium);
-          result = app.track(location + "?app=foo&affil=" + campaignName, referrer);
+          result = app.track(location + "?app=foo&affil=ppc_foo" , referrer);
           expect(result).toEqual({
-            "campaignName": campaignName,
-            "campaignMedium": campaignMedium,
-            "campaignSource": "bar.com"
+            "campaignName": "ppc_foo",
+            "campaignMedium": "sem",
+            "campaignSource": "www.bar.com"
           });
         });
 
@@ -50,13 +46,13 @@ describe("app", function() {
       describe("Does not set the campaign", function() {
         it("just returns if medium is seo", function() {
           spyOn(app, "getCampaignMedium").and.returnValue("seo");
-          result = app.track(location + "?app=foo&affil=bar", referrer);
+          result = app.track(location + "?app=foo&affil=seo-bar", referrer);
           expect(result).not.toBeDefined();
         });
 
         it("just returns if medium is direct", function() {
           spyOn(app, "getCampaignMedium").and.returnValue("direct");
-          result = app.track(location + "?app=foo&affil=bar", referrer);
+          result = app.track(location + "?app=foo&affil=direct:bar", "");
           expect(result).not.toBeDefined();
         });
       });
@@ -85,30 +81,26 @@ describe("app", function() {
 
 
   describe("getCampaignMedium", function() {
-
     describe("with campaign code", function() {
       it("returns the channels value", function() {
-        result = app.getCampaignMedium(location, "eml|Foo|bar", "foo-bar-baz.nk");
+        result = app.getCampaignMedium({}, "eml|Foo|bar", "foo-bar-baz.nk");
         expect(result).toEqual("email");
       });
 
       it("defaults to the other channel", function() {
-        result = app.getCampaignMedium(location, "foo-bar-baz", "foo-bar-baz.nk");
+        result = app.getCampaignMedium({ queryKey: {} }, "foo-bar-baz", "foo-bar-baz.nk");
         expect(result).toEqual("unknown-paid");
       });
     });
 
     describe("url containing s_kwicid or mckv params", function() {
-      var locationWithMCKV = [location, "?", "mckv=dam,foo,bar"].join("");
-      var locationWithS_KWICID = [location, "?", "s_kwicid=foo"].join("");
-
       it("returns the dem channel for mckv param with the value prefixed with dem", function() {
-        result = app.getCampaignMedium(locationWithMCKV, "Foo-bar-baz", "foo-bar-baz.nk");
+        result = app.getCampaignMedium({ queryKey: { mckv: "dem,foo,bar" } }, "foonando", "foo-bar-baz.nk");
         expect(result).toEqual("dem");
       });
 
       it("returns the sem channel for s_kwicid param", function() {
-        result = app.getCampaignMedium(locationWithS_KWICID, "Foo-bar-baz", "foo-bar-baz.nk");
+        result = app.getCampaignMedium({ queryKey: { s_kwcid: "foo" } }, "foonando", "foo-bar-baz.nk");
         expect(result).toEqual("sem");
       });
     });
@@ -125,7 +117,7 @@ describe("app", function() {
       });
 
       it("returns the social other channel for other social networks", function() {
-        result = app.getCampaignMedium(location, "", "hi5.co.uk");
+        result = app.getCampaignMedium(location, "", "hi5.com");
         expect(result).toEqual("social");
       });
 
