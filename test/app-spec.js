@@ -5,7 +5,7 @@ describe("app", function() {
   var location = "http://www.foo.com",
       referrer = "http://www.bar.com",
       app = require("../src/app.js"),
-      module, spy, result;
+      querystring, result;
 
   describe("With no app tags", function() {
 
@@ -30,16 +30,24 @@ describe("app", function() {
     describe("With an app tag", function() {
 
       beforeEach(function() {
-        spyOn(app, "getCampaignMedium").and.returnValue(undefined)
-      })
-
-      it("it sets a variable on dimension 9", function() {
-        result = app.track(location + "?app=foo", referrer);
-        expect(result).toEqual({'dimension9': 'foo'});
+        spyOn(app, "getCampaignMedium").and.returnValue(undefined);
       });
 
+      describe("and an lpaffil querystring parameter", function() {
+        it("sets a variable on dimension 10", function() {
+          result = app.track(location + "?app=foo&lpaffil=bar", referrer);
+          expect(result).toEqual({"dimension10": "bar"});
+        });
+      });
+
+      describe("and an intaffil querystring parameter", function() {
+        it("sets a variable on dimension11", function() {
+          result = app.track(location + "?app=foo&intaffil=bar", referrer);
+          expect(result).toEqual({"dimension11": "bar"});
+        });
+      });
     });
 
-  })
+  });
 
 });
