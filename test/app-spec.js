@@ -5,10 +5,15 @@ describe("app", function() {
   var location = "http://www.foo.com",
       referrer = "http://www.bar.com",
       app = require("../src/app.js"),
-      querystring, result;
+      result;
 
 
   describe("track", function() {
+    var querystring;
+
+    beforeEach(function() {
+      querystring = "";
+    });
 
     describe("With no app tags", function() {
 
@@ -22,7 +27,7 @@ describe("app", function() {
     describe("With a gclid querystring parameter", function() {
 
       it("it returns even if there is an app value", function() {
-        querystring = "?app=true&gclid=foo";
+        querystring = "?foo=bar&gclid=foo";
         expect(app.track(location + querystring, referrer)).not.toBeDefined();
       });
 
@@ -33,43 +38,52 @@ describe("app", function() {
       describe("Sets the campaign", function() {
 
         it("returns a campaign object", function() {
-          result = app.track(location + "?app=foo&affil=ppc_foo" , referrer);
+          var referrerHost = referrer.slice(7);
+          var campaignName = "ppc_foo";
+          querystring = "?foo=bar&affil=" + campaignName;
+          result = app.track(location + querystring, referrer);
           expect(result).toEqual({
-            "campaignName": "ppc_foo",
+            "campaignName": campaignName,
             "campaignMedium": "sem",
-            "campaignSource": "www.bar.com"
+            "campaignSource": referrerHost
           });
         });
 
       });
 
       describe("Does not set the campaign", function() {
+
         it("just returns if medium is seo", function() {
-          spyOn(app, "getCampaignMedium").and.returnValue("seo");
-          result = app.track(location + "?app=foo&affil=seo-bar", referrer);
+          querystring = "?affil=seo-bar";
+          result = app.track(location + querystring, referrer);
           expect(result).not.toBeDefined();
         });
 
         it("just returns if medium is direct", function() {
-          spyOn(app, "getCampaignMedium").and.returnValue("direct");
-          result = app.track(location + "?app=foo&affil=direct:bar", "");
+          querystring = "?app=foo&affil=direct:bar";
+          result = app.track(location + querystring, referrer);
           expect(result).not.toBeDefined();
         });
+
       });
 
       describe("Sets dimensions", function() {
 
         describe("an lpaffil querystring parameter is present", function() {
+
           it("sets a variable on dimension 10", function() {
-            result = app.track(location + "?app=foo&lpaffil=bar", referrer);
-            expect(result).toEqual({"dimension10": "bar"});
+            querystring = "?lpaffil=bar";
+            result = app.track(location + querystring, referrer);
+            expect(result).toEqual({ "dimension10": "bar" });
           });
+
         });
 
         describe("an an intaffil querystring parameter is present", function() {
           it("sets a variable on dimension11", function() {
-            result = app.track(location + "?app=foo&intaffil=bar", referrer);
-            expect(result).toEqual({"dimension11": "bar"});
+            querystring = "?intaffil=bar";
+            result = app.track(location + querystring, referrer);
+            expect(result).toEqual({ "dimension11": "bar" });
           });
         });
 
@@ -81,64 +95,96 @@ describe("app", function() {
 
 
   describe("getCampaignMedium", function() {
+    var parsedUrl, campCode, referrerHost;
+
+    beforeEach(function() {
+      parsedUrl = { queryKey: {} };
+      campCode = "";
+      referrerHost = "foo-bar-baz.nk";
+    });
+
     describe("with campaign code", function() {
+
       it("returns the channels value", function() {
-        result = app.getCampaignMedium({}, "eml|Foo|bar", "foo-bar-baz.nk");
+        parsedUrl.queryKey.affil = campCode = "eml|Foo|bar";
+        result = app.getCampaignMedium(parsedUrl, campCode, referrerHost);
         expect(result).toEqual("email");
       });
 
       it("defaults to the other channel", function() {
-        result = app.getCampaignMedium({ queryKey: {} }, "foo-bar-baz", "foo-bar-baz.nk");
+        parsedUrl.queryKey.affil = campCode = "foo-bar-baz";
+        result = app.getCampaignMedium(parsedUrl, campCode, referrerHost);
         expect(result).toEqual("unknown-paid");
       });
+
     });
 
     describe("url containing s_kwicid or mckv params", function() {
+
+      beforeEach(function() {
+        parsedUrl.queryKey.affil = campCode = "foo-bar-baz";
+      });
+
       it("returns the dem channel for mckv param with the value prefixed with dem", function() {
-        result = app.getCampaignMedium({ queryKey: { mckv: "dem,foo,bar" } }, "foonando", "foo-bar-baz.nk");
+        parsedUrl.queryKey.mckv = "dem,foo,bar";
+        result = app.getCampaignMedium(parsedUrl, campCode, referrerHost);
         expect(result).toEqual("dem");
       });
 
       it("returns the sem channel for s_kwicid param", function() {
-        result = app.getCampaignMedium({ queryKey: { s_kwcid: "foo" } }, "foonando", "foo-bar-baz.nk");
+        parsedUrl.queryKey.s_kwcid = "foo";
+        result = app.getCampaignMedium(parsedUrl, campCode, referrerHost);
         expect(result).toEqual("sem");
       });
+
     });
 
     describe("with no campaign code but a referrer uri", function() {
+
       it("returns the seo channel for a search engine", function() {
-        result = app.getCampaignMedium(location, "", "google.de");
+        referrerHost = "google.de";
+        result = app.getCampaignMedium(parsedUrl, campCode, referrerHost);
         expect(result).toEqual("seo");
       });
 
       it("returns the social channel for a key social network", function() {
-        result = app.getCampaignMedium(location, "", "twitter.com");
+        referrerHost = "twitter.com";
+        result = app.getCampaignMedium(parsedUrl, campCode, referrerHost);
         expect(result).toEqual("social");
       });
 
       it("returns the social other channel for other social networks", function() {
-        result = app.getCampaignMedium(location, "", "hi5.com");
+        referrerHost = "hi5.com";
+        result = app.getCampaignMedium(parsedUrl, campCode, referrerHost);
         expect(result).toEqual("social");
       });
 
       it("returns the other referrer channel if there are no matches", function() {
-        result = app.getCampaignMedium(location, "", "foo-bar-baz.ik");
+        referrerHost = "foo-bar-baz.ik";
+        result = app.getCampaignMedium(parsedUrl, campCode, referrerHost);
         expect(result).toEqual("other-referring-domain");
       });
+
     });
 
     describe("with no campaign code and internal referrer", function() {
+
       it("returns the direct channel", function() {
-        result = app.getCampaignMedium(location, "", "lonelyplanet.com");
+        referrerHost = "lonelyplanet.com";
+        result = app.getCampaignMedium(parsedUrl, campCode, referrerHost);
         expect(result).toEqual("direct");
       });
+
     });
 
     describe("with no campaign code and no referrer uri", function() {
+
       it("returns the direct channel", function() {
-        result = app.getCampaignMedium(location, "", "");
+        referrerHost = "";
+        result = app.getCampaignMedium(parsedUrl, campCode, referrerHost);
         expect(result).toEqual("direct");
       });
+
     });
 
   });
