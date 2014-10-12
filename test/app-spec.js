@@ -45,6 +45,9 @@ describe("app", function() {
           });
         });
 
+      });
+
+      describe("Does not set the campaign", function() {
         it("just returns if medium is seo", function() {
           spyOn(app, "getCampaignMedium").and.returnValue("seo");
           result = app.track(location + "?app=foo&affil=bar", referrer);
