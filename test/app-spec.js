@@ -25,6 +25,26 @@ describe("app", function() {
 
   });
 
+  describe("Does not set the campaign", function() {
+
+    describe("when campaign medium is an ignored value", function() {
+
+      it("just returns if medium is seo", function() {
+        spyOn(app, "getCampaignMedium").and.returnValue("seo");
+        result = app.track(location + "?app=foo&affil=bar", referrer);
+        expect(result).not.toBeDefined();
+      });
+
+      it("just returns if medium is direct", function() {
+        spyOn(app, "getCampaignMedium").and.returnValue("direct");
+        result = app.track(location + "?app=foo&affil=bar", referrer);
+        expect(result).not.toBeDefined();
+      });
+
+    });
+
+  });
+
   describe("Set Dimensions", function() {
 
     describe("With an app tag", function() {
