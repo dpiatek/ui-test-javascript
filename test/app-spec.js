@@ -84,8 +84,70 @@ describe("app", function() {
   });
 
 
-
   describe("getCampaignMedium", function() {
+
+    describe("with campaign code", function() {
+      it("returns the channels value", function() {
+        result = app.getCampaignMedium(location, "eml|Foo|bar", "foo-bar-baz.nk");
+        expect(result).toEqual("email");
+      });
+
+      it("defaults to the other channel", function() {
+        result = app.getCampaignMedium(location, "foo-bar-baz", "foo-bar-baz.nk");
+        expect(result).toEqual("unknown-paid");
+      });
+    });
+
+    describe("url containing s_kwicid or mckv params", function() {
+      var locationWithMCKV = [location, "?", "mckv=dam,foo,bar"].join("");
+      var locationWithS_KWICID = [location, "?", "s_kwicid=foo"].join("");
+
+      it("returns the dem channel for mckv param with the value prefixed with dem", function() {
+        result = app.getCampaignMedium(locationWithMCKV, "Foo-bar-baz", "foo-bar-baz.nk");
+        expect(result).toEqual("dem");
+      });
+
+      it("returns the sem channel for s_kwicid param", function() {
+        result = app.getCampaignMedium(locationWithS_KWICID, "Foo-bar-baz", "foo-bar-baz.nk");
+        expect(result).toEqual("sem");
+      });
+    });
+
+    describe("with no campaign code but a referrer uri", function() {
+      it("returns the seo channel for a search engine", function() {
+        result = app.getCampaignMedium(location, "", "google.de");
+        expect(result).toEqual("seo");
+      });
+
+      it("returns the social channel for a key social network", function() {
+        result = app.getCampaignMedium(location, "", "twitter.com");
+        expect(result).toEqual("social");
+      });
+
+      it("returns the social other channel for other social networks", function() {
+        result = app.getCampaignMedium(location, "", "hi5.co.uk");
+        expect(result).toEqual("social");
+      });
+
+      it("returns the other referrer channel if there are no matches", function() {
+        result = app.getCampaignMedium(location, "", "foo-bar-baz.ik");
+        expect(result).toEqual("other-referring-domain");
+      });
+    });
+
+    describe("with no campaign code and internal referrer", function() {
+      it("returns the direct channel", function() {
+        result = app.getCampaignMedium(location, "", "lonelyplanet.com");
+        expect(result).toEqual("direct");
+      });
+    });
+
+    describe("with no campaign code and no referrer uri", function() {
+      it("returns the direct channel", function() {
+        result = app.getCampaignMedium(location, "", "");
+        expect(result).toEqual("direct");
+      });
+    });
 
   });
 
