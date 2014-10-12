@@ -45,6 +45,23 @@ describe("app", function() {
 
   });
 
+  describe("Set campaign", function() {
+
+    it("returns a campaign object", function() {
+      var campaignName = "baz";
+      var campaignMedium = "foo";
+
+      spyOn(app, "getCampaignMedium").and.returnValue(campaignMedium);
+      result = app.track(location + "?app=foo&affil=" + campaignName, referrer);
+      expect(result).toEqual({
+        "campaignName": campaignName,
+        "campaignMedium": campaignMedium,
+        "campaignSource": "bar.com"
+      });
+    });
+
+  });
+
   describe("Set Dimensions", function() {
 
     describe("With an app tag", function() {
