@@ -149,8 +149,6 @@ module.exports = (function() {
 
       }
 
-      return "This will fail";
-
     }
 
   };
