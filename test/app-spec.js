@@ -59,14 +59,9 @@ describe("app", function() {
           result = app.track(location + "?app=foo&affil=bar", referrer);
           expect(result).not.toBeDefined();
         });
-
       });
 
       describe("Sets dimensions", function() {
-
-        beforeEach(function() {
-          spyOn(app, "getCampaignMedium").and.returnValue(undefined);
-        });
 
         describe("an lpaffil querystring parameter is present", function() {
           it("sets a variable on dimension 10", function() {
