@@ -13,7 +13,7 @@ module.exports = (function() {
 
     var parsedUrl = parseUri(currentUrl),
         params = parsedUrl.queryKey,
-        referrerDomain = parseUri(referrerUrl).host;
+        referrerHost = parseUri(referrerUrl).host;
 
     // IMPORTANT NOTE
     // all dimension and campaign tracking must be set before the pageview is sent
@@ -27,7 +27,7 @@ module.exports = (function() {
 
         //yes
         //get the campaign medium (channel)
-        var campmedium = getCampaignMedium(parsedUrl, params.affil, referrerDomain);
+        var campmedium = getCampaignMedium(parsedUrl, params.affil, referrerHost);
 
         //if the campaign medium is not seo or direct
         if (campmedium != "seo"  && campmedium != "direct") {
@@ -35,7 +35,7 @@ module.exports = (function() {
           return {
             'campaignName': params.affil,
             'campaignMedium': campmedium,
-            'campaignSource': referrerDomain
+            'campaignSource': referrerHost
           }
         }
 
@@ -56,7 +56,7 @@ module.exports = (function() {
 
   }
 
-  function getCampaignMedium(parsedUrl, campcode, refuri) {
+  function getCampaignMedium(parsedUrl, campcode, referrerHost) {
 
     /**********Campaign management plugin *********************/
 
@@ -123,22 +123,22 @@ module.exports = (function() {
       }
 
 
-    } else if (refuri && !refuri.match(/lonelyplanet./i)) {
+    } else if (referrerHost && !referrerHost.match(/lonelyplanet./i)) {
 
       //no campaign code so derive channel from referrer etc
       //look at referrer etc
       //is this natural search?
-      if (refuri.match(/google\.|bing\.|yahoo\.|ask\.|aol\./i)) {
+      if (referrerHost.match(/google\.|bing\.|yahoo\.|ask\.|aol\./i)) {
 
         //yes
         return channels.seo;
 
-      } else if (refuri.match(/facebook\.|linkedin\.|twitter\.|myspace\.|youtube\.|ning\.|^t\.co|xanga\./i)) {
+      } else if (referrerHost.match(/facebook\.|linkedin\.|twitter\.|myspace\.|youtube\.|ning\.|^t\.co|xanga\./i)) {
 
         //no - its social from a key social network
         return channels.soc;
 
-      } else if (refuri.match(/orkut\.|friendster\.|vimeo\.com|bebo\.com|hi5\.com|yuku\.com|cafemom\.com|xanga\.com|livejournal\.com|blogspot\.com|wordpress\.com|myspace\.com|digg\.com|reddit\.com|stumbleupon\.com|twine\.com|yelp\.com|mixx\.com|chime\.in|delicious\.com|tumblr\.com|disqus\.com|intensedebate\.com|plurk\.com|slideshare\.net|backtype\.com|netvibes\.com|mister-wong\.com|diigo\.com|flixster\.com|12seconds\.tv|zooomr\.com|identi\.ca|jaiku\.com|flickr\.com|imeem\.com|dailymotion\.com|photobucket\.com|fotolog\.com|smugmug\.com|classmates\.com|myyearbook\.com|mylife\.com|tagged\.com|brightkite\.com|hi5\.com|yuku\.com|cafemom\.com|plus\.google\.com|instagram\.com|prezi\.com|newsvine\.com|pinterest\.com|wiebo\.com|nevkontakte\.com|qzone\.qq\.com|cloob\.com/i)) {
+      } else if (referrerHost.match(/orkut\.|friendster\.|vimeo\.com|bebo\.com|hi5\.com|yuku\.com|cafemom\.com|xanga\.com|livejournal\.com|blogspot\.com|wordpress\.com|myspace\.com|digg\.com|reddit\.com|stumbleupon\.com|twine\.com|yelp\.com|mixx\.com|chime\.in|delicious\.com|tumblr\.com|disqus\.com|intensedebate\.com|plurk\.com|slideshare\.net|backtype\.com|netvibes\.com|mister-wong\.com|diigo\.com|flixster\.com|12seconds\.tv|zooomr\.com|identi\.ca|jaiku\.com|flickr\.com|imeem\.com|dailymotion\.com|photobucket\.com|fotolog\.com|smugmug\.com|classmates\.com|myyearbook\.com|mylife\.com|tagged\.com|brightkite\.com|hi5\.com|yuku\.com|cafemom\.com|plus\.google\.com|instagram\.com|prezi\.com|newsvine\.com|pinterest\.com|wiebo\.com|nevkontakte\.com|qzone\.qq\.com|cloob\.com/i)) {
 
         //no - its social from another social network
         return channels.soc_other
