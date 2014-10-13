@@ -1,9 +1,8 @@
 module.exports = (function() {
-
   "use strict";
 
-  var parseUri = require("./parseUri");
-  var channels = require("./channels");
+  var parseUri = require("./parseUri"),
+      channels = require("./channels");
 
   return {
     getCampaignMedium: getCampaignMedium,
@@ -46,18 +45,18 @@ module.exports = (function() {
     }
   }
 
-  function getCampaignMedium(parsedUrl, campcode, referrerHost) {
-    if (campcode) {
-      return getCampaignFromCode(parsedUrl, campcode);
-    } else if (referrerHost && isExternalReferrerHost(referrerHost)) {
-      return getCampaignFromReferrer(referrerHost);
+  function getCampaignMedium(parsedUrl, campaignCode, referrerHost) {
+    if (campaignCode) {
+      return getChannelFromCode(parsedUrl, campaignCode);
+    } else if (referrerHost && isExternalReferrer(referrerHost)) {
+      return getChannelFromReferrer(referrerHost);
     } else {
       return channels.direct;
     }
   }
 
-  function getCampaignFromCode(parsedUrl, campcode) {
-    var channelKey = getChannelFromCode(campcode),
+  function getChannelFromCode(parsedUrl, campaignCode) {
+    var channelKey = getChannelKeyFromCode(campaignCode),
         channel = channelKey && channels[channelKey];
 
     if (channel) {
@@ -71,7 +70,7 @@ module.exports = (function() {
     }
   }
 
-  function getChannelFromCode(campcode) {
+  function getChannelKeyFromCode(campaignCode) {
     var ccparts = [], i = 0;
 
     //define all possible campaign code separators
@@ -79,18 +78,14 @@ module.exports = (function() {
 
     //find out which separator is being used and split by it
     while (ccparts.length < 2 && i < separators.length) {
-      ccparts = campcode.toLowerCase().split(separators[i]);
+      ccparts = campaignCode.toLowerCase().split(separators[i]);
       i++;
     }
 
     return ccparts[0];
   }
 
-  function isExternalReferrerHost(referrerHost) {
-    return !referrerHost.match(/lonelyplanet./i);
-  }
-
-  function getCampaignFromReferrer(referrerHost) {
+  function getChannelFromReferrer(referrerHost) {
     var naturalSearch = /google\.|bing\.|yahoo\.|ask\.|aol\./i;
     var socialNetworks = /facebook\.|linkedin\.|twitter\.|myspace\.|youtube\.|ning\.|^t\.co|xanga\./i;
     var socialNetworksOther = /orkut\.|friendster\.|vimeo\.com|bebo\.com|hi5\.com|yuku\.com|cafemom\.com|xanga\.com|livejournal\.com|blogspot\.com|wordpress\.com|myspace\.com|digg\.com|reddit\.com|stumbleupon\.com|twine\.com|yelp\.com|mixx\.com|chime\.in|delicious\.com|tumblr\.com|disqus\.com|intensedebate\.com|plurk\.com|slideshare\.net|backtype\.com|netvibes\.com|mister-wong\.com|diigo\.com|flixster\.com|12seconds\.tv|zooomr\.com|identi\.ca|jaiku\.com|flickr\.com|imeem\.com|dailymotion\.com|photobucket\.com|fotolog\.com|smugmug\.com|classmates\.com|myyearbook\.com|mylife\.com|tagged\.com|brightkite\.com|hi5\.com|yuku\.com|cafemom\.com|plus\.google\.com|instagram\.com|prezi\.com|newsvine\.com|pinterest\.com|wiebo\.com|nevkontakte\.com|qzone\.qq\.com|cloob\.com/i;
@@ -104,6 +99,10 @@ module.exports = (function() {
     } else {
       return channels.other_ref;
     }
+  }
+
+  function isExternalReferrer(referrerHost) {
+    return !referrerHost.match(/lonelyplanet./i);
   }
 
 }());
