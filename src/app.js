@@ -11,50 +11,39 @@ module.exports = (function() {
   };
 
   function track(currentUrl, referrerUrl) {
-
     var parsedUrl = parseUri(currentUrl),
         params = parsedUrl.queryKey,
-        referrerHost = parseUri(referrerUrl).host;
+        referrerHost = parseUri(referrerUrl).host,
+        campaignMedium = getCampaignMedium(parsedUrl, params.affil, referrerHost);
 
     // IMPORTANT NOTE
     // all dimension and campaign tracking must be set before the pageview is sent
 
-    //make sure there is a query params and not gclid - we won't touch campaign overrides where a gclid is present
-
-    if (params.query !== "" && !params.gclid) {
-
-      //is there an affil query parameter?
-      if (params.affil) {
-
-        //yes
-        //get the campaign medium (channel)
-        var campmedium = getCampaignMedium(parsedUrl, params.affil, referrerHost);
-
-        //if the campaign medium is not seo or direct
-        if (campmedium != "seo"  && campmedium != "direct") {
-
-          return {
-            "campaignName": params.affil,
-            "campaignMedium": campmedium,
-            "campaignSource": referrerHost
-          };
-        }
-
-      } else if (params.lpaffil) {
-
-        //no but there is a lpaffil parameter
-        //so set the custom dimension 10
-        return { "dimension10": params.lpaffil };
-
-      } else if (params.intaffil) {
-
-        //no but there is a intaffil parameter
-        //so set the custom dimension 11
-        return { "dimension11": params.intaffil };
-      }
-
+    // do not track
+    if (params.gclid) {
+      return;
     }
 
+    // affil, lpaffil and intaffil are exclusive
+    if (params.affil && validCampaignMedium(campaignMedium)) {
+      return {
+        "campaignName": params.affil,
+        "campaignMedium": campaignMedium,
+        "campaignSource": referrerHost
+      };
+    } else if (params.lpaffil) {
+      return {
+        "dimension10": params.lpaffil
+      };
+    } else if (params.intaffil) {
+      return {
+        "dimension11": params.intaffil
+      };
+    }
+
+    function validCampaignMedium(medium) {
+      return (medium !== "seo") && (medium !== "direct");
+    }
   }
 
   function getCampaignMedium(parsedUrl, campcode, referrerHost) {
